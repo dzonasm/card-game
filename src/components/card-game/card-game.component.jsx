@@ -1,29 +1,42 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import "./card-game.styles.css";
 import { Card } from "../card-component/card.component";
-import { uuid } from "uuidv4";
+import { v4 } from "uuid";
 
 export const CardGame = () => {
-	const [numbers, setNumbers] = useState([1, 1, 2, 2, 3, 3, 4, 4]);
+	const [numbers, setNumbers] = useState([]);
 	const [guess, setGuess] = useState(null);
 
-	const handleCardClick = number => {
-		if (number === guess) return setNumbers(numbers.filter(n => n !== number));
-		setGuess(number);
+	useEffect(() => {
+		const newNumbers = [];
+		for (let i = 1; i <= 4; i += 1) {
+			newNumbers.push({ number: i, id: v4() });
+			newNumbers.push({ number: i, id: v4() });
+		}
+		setNumbers(newNumbers);
+	}, []);
+
+	//set active card
+
+	const handleCardClick = card => {
+		if (!guess) return setGuess(card);
+		if (card.number === guess.number && card.id !== guess.id)
+			setNumbers(numbers.filter(n => n.number !== guess.number));
+		setGuess(card);
 	};
 
-	const cards = useMemo(
-		() =>
-			numbers.map(number => (
-				<Card
-					testProp={() => console.log(number)}
-					handleCardClick={handleCardClick}
-					key={uuid()}
-					number={number}
-				/>
-			)),
-		[numbers],
-	);
+	const findActiveCard = id => {
+		if (!guess) return false;
+		if (guess.id !== id) return false;
+		return true;
+	};
+
+	const cards = numbers.map(card => {
+		const { number, id } = card;
+		return (
+			<Card handleCardClick={handleCardClick} card={card} key={id} active={findActiveCard(id)} number={number} />
+		);
+	});
 
 	return <div className="card-game">{cards}</div>;
 };
