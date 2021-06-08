@@ -3,9 +3,16 @@ import "./card-game.styles.css";
 import { Card } from "../card-component/card.component";
 import { v4 } from "uuid";
 
+import { randomRecursive } from "../../common/utils";
+
 export const CardGame = () => {
 	const [numbers, setNumbers] = useState([]);
-	const [guess, setGuess] = useState(null);
+	const [guess, setGuess] = useState([]);
+	const [guessCount, setGuessCount] = useState(0);
+
+	//guess is an array, if an element is in the array, it becomes active,
+	//if two elements are the same, a timeout occurs and the elements are removed,
+	//if the elements are not the same, the guess array is cleared
 
 	useEffect(() => {
 		const newNumbers = [];
@@ -13,22 +20,36 @@ export const CardGame = () => {
 			newNumbers.push({ number: i, id: v4() });
 			newNumbers.push({ number: i, id: v4() });
 		}
-		setNumbers(newNumbers);
+		const randomized = randomRecursive(newNumbers);
+		setNumbers(randomized);
 	}, []);
 
-	//set active card
-
 	const handleCardClick = card => {
-		if (!guess) return setGuess(card);
-		if (card.number === guess.number && card.id !== guess.id)
-			setNumbers(numbers.filter(n => n.number !== guess.number));
-		setGuess(card);
+		if (guess.length === 2) return setGuess([card]);
+		const guessTemp = [...guess, card];
+		const [firstGuess, secondGuess] = guessTemp;
+		if (secondGuess && secondGuess.number !== firstGuess.number) {
+			setTimeout(() => {
+				setGuessCount(guessCount + 1);
+				return setGuess([]);
+			}, 1000);
+		}
+		if (secondGuess && secondGuess.number === firstGuess.number) {
+			setTimeout(() => {
+				setNumbers(numbers.filter(n => n.number !== firstGuess.number));
+			}, 1000);
+		}
+
+		setGuess(guessTemp);
+		console.log(guessTemp);
 	};
 
 	const findActiveCard = id => {
-		if (!guess) return false;
-		if (guess.id !== id) return false;
-		return true;
+		if (!guess.length) return false;
+		const [firstGuess, secondGuess] = guess;
+		if (firstGuess.id === id) return true;
+		if (secondGuess && secondGuess.id === id) return true;
+		return false;
 	};
 
 	const cards = numbers.map(card => {
@@ -38,7 +59,12 @@ export const CardGame = () => {
 		);
 	});
 
-	return <div className="card-game">{cards}</div>;
+	return (
+		<>
+			<div className="card-game">{cards}</div>
+			<p>{guessCount}</p>
+		</>
+	);
 };
 
 //find out if 2 different card number props match, return true or false
