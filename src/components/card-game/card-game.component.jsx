@@ -9,6 +9,7 @@ export const CardGame = () => {
 	const [numbers, setNumbers] = useState([]);
 	const [guess, setGuess] = useState([]);
 	const [guessCount, setGuessCount] = useState(0);
+	const [newGame, setNewGame] = useState(0);
 
 	//guess is an array, if an element is in the array, it becomes active,
 	//if two elements are the same, a timeout occurs and the elements are removed,
@@ -22,7 +23,7 @@ export const CardGame = () => {
 		}
 		const randomized = randomRecursive(newNumbers);
 		setNumbers(randomized);
-	}, []);
+	}, [newGame]);
 
 	const handleCardClick = card => {
 		if (guess.length === 2) return setGuess([card]);
@@ -61,6 +62,16 @@ export const CardGame = () => {
 
 	return (
 		<>
+			{numbers.length === 0 && (
+				<p
+					onClick={() => {
+						setGuessCount(0);
+						setNewGame(newGame + 1);
+					}}
+				>
+					"Congrads, click me to restart"
+				</p>
+			)}
 			<div className="card-game">{cards}</div>
 			<p>{guessCount}</p>
 		</>
